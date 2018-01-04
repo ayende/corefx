@@ -117,13 +117,15 @@ namespace Internal.Cryptography.Pal
                             }
 
                             privateCert = cert;
+
+                            privateCertHandle = cert.SafeHandle;
+                            privateCertKeyHandle = cert.PrivateKeyHandle;
                         }
                         else
                         {
                             PushHandle(cert.Handle, publicCerts);
                         }
 
-                        GC.KeepAlive(cert); // ensure cert's safe handle isn't finalized while raw handle is in use
                     }
                 }
 
@@ -143,6 +145,9 @@ namespace Internal.Cryptography.Pal
                         Interop.Crypto.EncodePkcs12,
                         pkcs12);
                 }
+
+                // ensure certs handle isn't finalized while raw handle is in use
+                GC.KeepAlive(_certs); 
             }
         }
 
