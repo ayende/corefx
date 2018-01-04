@@ -117,9 +117,9 @@ namespace Internal.Cryptography.Pal
                             }
 
                             privateCert = cert;
-
-                            privateCertHandle = cert.SafeHandle;
-                            privateCertKeyHandle = cert.PrivateKeyHandle;
+                            var certPal = (OpenSslX509CertificateReader)cert.Pal;
+                            privateCertHandle = certPal.SafeHandle;
+                            privateCertKeyHandle = certPal.PrivateKeyHandle;
                         }
                         else
                         {
@@ -140,14 +140,17 @@ namespace Internal.Cryptography.Pal
                         throw Interop.Crypto.CreateOpenSslCryptographicException();
                     }
 
-                    return Interop.Crypto.OpenSslEncode(
+                    var result = Interop.Crypto.OpenSslEncode(
                         Interop.Crypto.GetPkcs12DerSize,
                         Interop.Crypto.EncodePkcs12,
                         pkcs12);
+
+                    // ensure certs handle isn't finalized while raw handle(s) is in use
+                    GC.KeepAlive(_certs);
+                    return result;
                 }
 
-                // ensure certs handle isn't finalized while raw handle is in use
-                GC.KeepAlive(_certs); 
+                
             }
         }
 
